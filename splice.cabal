@@ -5,11 +5,11 @@ synopsis:      Socket to Socket Data Splicing (supports all operating systems)
 description:   A library that implements most efficient socket to socket
                data transfer loops for proxy servers on each operating system.
                .
-               On Linux, it uses and exposes the zero-copy @splice()@ system
+               On GNU/Linux, it uses and exposes the zero-copy @splice()@ system
                call: <http://kerneltrap.org/node/6505>.
                .
-               On other operating systems, it currently falls back to a portable
-               Haskell implementation.
+               On all other operating systems, it currently falls back to a
+               portable Haskell implementation.
                .
                [Corsis Research]
                This work is funded by Corsis Research
@@ -24,7 +24,7 @@ license:       BSD3
 license-file:  LICENSE
 author:        Cetin Sert <fusion@corsis.eu>
 maintainer:    Cetin Sert <fusion@corsis.eu>
-homepage:      https://github.com/corsis/splice
+homepage:      http://corsis.github.com/splice/
 category:      Network
 build-type:    Simple
 cabal-version: >=1.2
