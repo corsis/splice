@@ -129,10 +129,8 @@ splice len sIn sOut = do
 
 #else
 
-  s <- fdToHandle fdIn
-  t <- fdToHandle fdOut
-  hSetBuffering s NoBuffering
-  hSetBuffering t NoBuffering
+  s <- fdToHandle fdIn ; hSetBuffering s NoBuffering
+  t <- fdToHandle fdOut; hSetBuffering t NoBuffering
   a <- mallocBytes len :: IO (Ptr Word8)
 
   finally
