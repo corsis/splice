@@ -1,5 +1,5 @@
 name:          splice
-version:       0.3.2
+version:       0.4
 stability:     stable on GNU/Linux, experimental on other operating systems
 synopsis:      Socket to Socket Data Splicing (supports all operating systems)
 description:   A library that implements most efficient socket to socket
@@ -33,7 +33,7 @@ tested-with:   GHC >= 7.0
 
 
 flag portable
-    description: explicitly enable portable splice implemented in Haskell
+    description: force portable 'splice' implementation on GNU\/Linux
     default    : False
 
 

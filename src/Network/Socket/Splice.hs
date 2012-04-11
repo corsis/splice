@@ -5,12 +5,12 @@
   On GNU\/Linux, it uses and exposes the zero-copy @splice()@ system call:
   <http://kerneltrap.org/node/6505>.
 
-  On other operating systems, it currently falls back to a portable Haskell
-  implementation – which first allocates a constant-sized memory buffer in user
-  address, then enters an inner loop which uses 'System.IO.hGetBufSome'
-  and 'System.IO.hPutBuf' on this user-space buffer. This avoids tony of tiny
-  allocations as might otherwise be caused by 'Network.Socket.ByteString.recv'
-  and 'Network.Socket.ByteString.sendAll' from the @bytestring@ package.
+  On all other operating systems, it currently falls back to a portable Haskell
+  implementation – which allocates a single memory buffer in user address space,
+  then enters an inner loop that uses 'System.IO.hGetBufSome' and
+  'System.IO.hPutBuf' on this buffer. This avoids lots of tiny allocations as
+  would otherwise be caused by 'Network.Socket.ByteString.recv' and
+  'Network.Socket.ByteString.sendAll' from the @bytestring@ package.
 -}
 --  
 -- Module      : Network.Socket.Splice

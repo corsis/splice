@@ -1,4 +1,5 @@
 -- | Implementation.
+--
 -- Module      : Network.Socket.Splice.Internal
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
@@ -20,11 +21,14 @@ module Network.Socket.Splice.Internal (
   {- | 'splice' is the cross-platform API for continous, uni-directional
        data transfer between two network sockets.
 
-       It is an /infinite loop/ that is intended to be used with
-       'Control.Concurrent.forkIO':
+       'splice' and its implementation primitives 'hSplice' and 'fdSplice' are
+       /infinite/ loops that are intended to be used with exception handlers
+       'Control.Concurrent.forkIO'.
 
-       > void . forkIO . try_ $ splice 1024 sourceSocket targetSocket
-       > void . forkIO . try_ $ splice 1024 targetSocket sourceSocket
+       [Create bi-directional infinite data transfer between two sockets:]
+    
+       > void . forkIO . try_ $ splice 1024 (sourceSocket, _) (targetSocket, _)
+       > void . forkIO . try_ $ splice 1024 (targetSocket, _) (sourceSocket, _)
   -}
 
     splice
@@ -34,15 +38,26 @@ module Network.Socket.Splice.Internal (
   -- * Combinators for Exception Handling
   , try_
 
+  -- * Implementation Primitives
+  {- | Infinite loops used in the cross-platform implementation of 'splice'.
+  -}
+
+  , hSplice
+#ifdef LINUX_SPLICE
+  , fdSplice
+#endif
+
   ) where
 
 
 import Data.Word
 import Foreign.Ptr
 
+import System.IO
 import Network.Socket
 import Control.Monad
 import Control.Exception
+import Foreign.Marshal.Alloc
 
 #ifdef LINUX_SPLICE
 import Data.Int
@@ -54,9 +69,7 @@ import System.Posix.Types
 import System.Posix.Internals
 import qualified System.IO.Splice.Linux as L
 #else
-import System.IO
-import GHC.IO.Handle.FD
-import Foreign.Marshal.Alloc
+import Data.Maybe
 #endif
 
 
@@ -85,38 +98,74 @@ type ChunkSize =
 #endif
 
 
+throwRecv0 :: a
+throwRecv0 = error "Network.Socket.Splice.splice ended"
+
 -- | Pipes data from one socket to another in an /infinite loop/.
 --
---   On Linux this uses the @splice()@ system call and eliminates copying
---   between kernel and user address spaces.
+--   'splice' currently has two implementations:
 --
---   On other operating systems, a portable Haskell implementation utilizes a
---   user space buffer.
+--   [on GNU\/Linux using 'fdSplice' ≅]
+--
+--   > splice len (sIn, _       ) (sOut, _        ) = ... fdSplice ...
+--
+--   [on all other operating systems using 'hSplice' ≅]
+--
+--   > splice len (_  , Just hIn) (_   , Just hOut) = ... hSplice  ...
+--
+--   [Notes]
+--
+--     * 'fdSplice' and 'fdSplice' implementation of 'splice' are only available
+--        on GNU\/Linux.
+--
+--     * 'hSplice' is always available and the 'hSplice' implementation of
+--       'splice' can be forced on GNU\/Linux by defining the @portable@ flag at
+--       compile time.
+--
 splice
-  :: ChunkSize -- ^ chunk size.
-  -> Socket    -- ^ source socket.
-  -> Socket    -- ^ target socket.
-  -> IO ()     -- ^ infinite loop.
-splice len sIn sOut = do
+  :: ChunkSize               -- ^ chunk size.
+  -> (Socket, Maybe Handle)  -- ^ source socket and possibly its opened handle.
+  -> (Socket, Maybe Handle)  -- ^ target socket and possibly its opened handle.
+  -> IO ()                   -- ^ infinite loop.
+#ifdef LINUX_SPLICE
+splice len (sIn, _  ) (sOut, _   ) = do
+#else
+splice len (_  , hIn) (_   , hOut) = do
+#endif
+#ifdef LINUX_SPLICE
+  let s = Fd $ fdSocket sIn
+  let t = Fd $ fdSocket sOut
+  fdSplice len s t
+#else
+  let s = fromJust hIn
+  let t = fromJust hOut
+  hSplice  len s t
+#endif
 
-  let throwRecv0 = error "Network.Socket.Splice.splice ended"
 
-  let fdIn  = fdSocket sIn
-  let fdOut = fdSocket sOut 
 
 #ifdef LINUX_SPLICE
 
-  (r,w) <- createPipe     -- r,w: read / write ends of pipe
-  let s = Fd fdIn         -- s  : source socket
-  let t = Fd fdOut        -- t  : target socket
+{- | GNU\/Linux @splice()@ system call loop.
+
+       1. creates a pipe in kernel address space
+
+       2. uses it until the loop terminates by exception
+
+       3. closes the pipe and returns
+-}
+fdSplice :: ChunkSize -> Fd -> Fd -> IO ()
+fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
+
+  (r,w) <- createPipe
   let n = nullPtr  
   let u = unsafeCoerce :: (#type ssize_t) -> (#type size_t)
   let check = throwErrnoIfMinus1 "Network.Socket.Splice.splice"
   let flags = L.sPLICE_F_MOVE .|. L.sPLICE_F_MORE
   let setNonBlockingMode v = do setNonBlockingFD fdIn  v
                                 setNonBlockingFD fdOut v
-
   setNonBlockingMode False
+
   finally
     (forever $ do 
        bytes <- check $ L.c_splice s n w n    len    flags
@@ -125,13 +174,26 @@ splice len sIn sOut = do
          else           throwRecv0)
     (do closeFd r
         closeFd w
-        try_ $ setNonBlockingMode True)
+        try_ $ setNonBlockingMode True)  
 
-#else
+#endif
 
-  s <- fdToHandle fdIn ; hSetBuffering s NoBuffering
-  t <- fdToHandle fdOut; hSetBuffering t NoBuffering
-  a <- mallocBytes len :: IO (Ptr Word8)
+
+
+{- | The portable Haskell loop.
+
+       1. allocates a /single/ memory buffer in user address space
+
+       2. uses it until the loop terminates by exception
+
+       3. frees the buffer and returns
+-} 
+hSplice :: Int -> Handle -> Handle -> IO ()
+hSplice len s t = do
+
+  sb <- hGetBuffering s; hSetBuffering s NoBuffering
+  tb <- hGetBuffering s; hSetBuffering t NoBuffering
+  a  <- mallocBytes len :: IO (Ptr Word8)
 
   finally
     (forever $ do
@@ -140,10 +202,9 @@ splice len sIn sOut = do
          then     hPutBuf     t a bytes
          else     throwRecv0)
     (do free a
-        try_ $ hClose s
-        try_ $ hClose t)
+        try_ $ hSetBuffering s sb
+        try_ $ hSetBuffering s tb)
 
-#endif
 
 
 -- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
