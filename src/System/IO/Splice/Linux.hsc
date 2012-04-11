@@ -3,7 +3,7 @@
      /This module is only available (compiled & exposed) on Linux./
 -}
 --  
--- Module      : Network.Socket.Splice
+-- Module      : System.IO.Splice.Linux
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
@@ -63,14 +63,15 @@ sPLICE_F_MOVE :: Word
 sPLICE_F_MOVE = (#const "SPLICE_F_MOVE")
 
 
--- | More data will be coming in a subsequent splice. This is a helpful hint
+-- | More data will be coming in a subsequent 'c_splice'. This is a helpful hint
 --   when 'fd_out' refers to a socket.
 sPLICE_F_MORE :: Word
 sPLICE_F_MORE = (#const "SPLICE_F_MORE")
 
 
--- | Do not block on I\/O. This makes the splice pipe operations nonblocking,
---   but splice() may nevertheless block because the file descriptors that are
---   spliced to\/from may block (unless they have the O_NONBLOCK flag set).
+-- | Do not block on I\/O. This makes the 'c_splice' pipe operations
+--   nonblocking, but 'c_splice' may nevertheless block because the file
+--   descriptors that are 'c_splice'd to\/from may block (unless they have the
+--   @O_NONBLOCK@ flag set).
 sPLICE_F_NONBLOCK :: Word
 sPLICE_F_NONBLOCK = (#const "SPLICE_F_NONBLOCK")
