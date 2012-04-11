@@ -4,7 +4,7 @@
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : stable
--- Portability : GHC-only, works on all OSes
+-- Portability : GHC-only, works on all operating systems
 
 
 #ifdef LINUX_SPLICE

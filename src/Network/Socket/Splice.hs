@@ -2,7 +2,7 @@
   This library implements most efficient socket to socket data transfer loops
   for proxy servers on each operating system.
                
-  On Linux, it uses and exposes the zero-copy @splice()@ system call:
+  On GNU\/Linux, it uses and exposes the zero-copy @splice()@ system call:
   <http://kerneltrap.org/node/6505>.
 
   On other operating systems, it currently falls back to a portable Haskell
@@ -18,7 +18,7 @@
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : stable
--- Portability : GHC-only, works on all OSes
+-- Portability : GHC-only, works on all operating systems
 
 module Network.Socket.Splice (
 
