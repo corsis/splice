@@ -8,8 +8,8 @@
   On all other operating systems, it currently falls back to a portable Haskell
   implementation – which allocates a single memory buffer in user address space,
   then enters an inner loop that uses 'System.IO.hGetBufSome' and
-  'System.IO.hPutBuf' on this buffer. This avoids lots of tiny allocations as
-  would otherwise be caused by 'Network.Socket.ByteString.recv' and
+  'System.IO.hPutBuf'. This avoids lots of tiny allocations as would otherwise
+  be caused by 'Network.Socket.ByteString.recv' and
   'Network.Socket.ByteString.sendAll' from the @bytestring@ package.
 -}
 --  

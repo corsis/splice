@@ -22,10 +22,10 @@ module Network.Socket.Splice.Internal (
        data transfer between two network sockets.
 
        'splice' and its implementation primitives 'hSplice' and 'fdSplice' are
-       /infinite/ loops that are intended to be used with exception handlers
+       /infinite/ loops that are intended to be used with exception handlers and
        'Control.Concurrent.forkIO'.
 
-       [Create bi-directional infinite data transfer between two sockets:]
+       [Initiate bi-directional infinite data transfer between two sockets:]
     
        > void . forkIO . try_ $ splice 1024 (sourceSocket, _) (targetSocket, _)
        > void . forkIO . try_ $ splice 1024 (targetSocket, _) (sourceSocket, _)
@@ -139,7 +139,7 @@ splice len (_  , hIn) (_   , hOut) = do
 #else
   let s = fromJust hIn
   let t = fromJust hOut
-  hSplice  len s t
+  hSplice (fromIntegral len) s t
 #endif
 
 
