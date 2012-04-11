@@ -25,7 +25,7 @@ module Network.Socket.Splice.Internal (
        /infinite/ loops that are intended to be used with exception handlers and
        'Control.Concurrent.forkIO'.
 
-       [Initiate bi-directional infinite data transfer between two sockets:]
+       [Initiate bi-directional continuous data transfer between two sockets:]
     
        > void . forkIO . try_ $ splice 1024 (sourceSocket, _) (targetSocket, _)
        > void . forkIO . try_ $ splice 1024 (targetSocket, _) (sourceSocket, _)
