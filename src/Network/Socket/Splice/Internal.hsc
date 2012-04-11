@@ -174,7 +174,7 @@ fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
          else           throwRecv0)
     (do closeFd r
         closeFd w
-        try_ $ setNonBlockingMode True)  
+        try_ $ setNonBlockingMode True)
 
 #endif
 
