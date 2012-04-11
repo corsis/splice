@@ -24,7 +24,7 @@ license:       BSD3
 license-file:  LICENSE
 author:        Cetin Sert <fusion@corsis.eu>
 maintainer:    Cetin Sert <fusion@corsis.eu>
-homepage:      http://fusion.corsis.eu
+homepage:      https://github.com/corsis/splice
 category:      Network
 build-type:    Simple
 cabal-version: >=1.2
