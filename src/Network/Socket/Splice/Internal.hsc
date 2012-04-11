@@ -1,4 +1,11 @@
 -- | Implementation.
+-- Module      : Network.Socket.Splice.Internal
+-- Copyright   : (c) Cetin Sert 2012
+-- License     : BSD3
+-- Maintainer  : fusion@corsis.eu
+-- Stability   : stable
+-- Portability : GHC-only, works on all OSes
+
 
 #ifdef LINUX_SPLICE
 #include <fcntl.h>
