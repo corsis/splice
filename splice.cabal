@@ -34,7 +34,7 @@ tested-with:   GHC >= 7.0
 
 flag portable
     description: explicitly enable portable splice implemented in Haskell
-    default    : True
+    default    : False
 
 
 library
