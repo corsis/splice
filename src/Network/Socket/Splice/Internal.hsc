@@ -192,7 +192,7 @@ hSplice :: Int -> Handle -> Handle -> IO ()
 hSplice len s t = do
 
   sb <- hGetBuffering s; hSetBuffering s NoBuffering
-  tb <- hGetBuffering s; hSetBuffering t NoBuffering
+  tb <- hGetBuffering t; hSetBuffering t NoBuffering
   a  <- mallocBytes len :: IO (Ptr Word8)
 
   finally
