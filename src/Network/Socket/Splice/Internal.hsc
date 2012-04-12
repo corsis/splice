@@ -5,7 +5,7 @@
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : stable
--- Portability : GHC-only, works on all operating systems
+-- Portability : works on all operating systems
 
 
 #ifdef LINUX_SPLICE
@@ -27,8 +27,12 @@ module Network.Socket.Splice.Internal (
 
        [Initiate bi-directional continuous data transfer between two sockets:]
     
-       > void . forkIO . try_ $ splice 1024 (sourceSocket, _) (targetSocket, _)
-       > void . forkIO . try_ $ splice 1024 (targetSocket, _) (sourceSocket, _)
+       > void . forkIO . tryWith handler $ splice 1024 (sourceSocket, _) (targetSocket, _)
+       > void . forkIO . tryWith handler $ splice 1024 (targetSocket, _) (sourceSocket, _)
+
+       where @handler@ is an IO action that would do the necessary clean up –
+       such as ensuring the sockets are closed and any resources that may be
+       associated with the sockets are properly disposed of. 
   -}
 
     splice
@@ -36,6 +40,7 @@ module Network.Socket.Splice.Internal (
   , zeroCopy
 
   -- * Combinators for Exception Handling
+  , tryWith
   , try_
 
   -- * Implementation Primitives
@@ -205,6 +210,15 @@ hSplice len s t = do
         try_ $ hSetBuffering s sb
         try_ $ hSetBuffering s tb)
 
+
+-- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
+--   is expected and can be handled easily. Unlike 'finally' exceptions are
+--   not rethrown once handled.
+tryWith
+  :: (SomeException -> IO a) -- ^ exception handler.
+  -> IO a  -- ^ action to run which can throw /any/ exception.
+  -> IO a  -- ^ new action where all exceptions are handled by a single.
+tryWith h a = try a >>= \r -> case r of Left x -> h x; Right y -> return y
 
 
 -- | Similar to 'Control.Exception.Base.try' but used when an obvious exception

@@ -1,6 +1,6 @@
-{- | Exposes the GNU\/Linux system call @splice()@.
+{- | Exposes the GNU\/Linux system call @splice()@: <http://kerneltrap.org/node/6505>.
 
-     /This module is only available (compiled & exposed) on Linux./
+     /This module is only available (compiled & exposed) on GNU/\//Linux./
 -}
 --  
 -- Module      : System.IO.Splice.Linux
@@ -37,8 +37,8 @@ import System.Posix.Types
 type ChunkSize = (#type size_t)
 
 -- | Moves data between two file descriptors without copying between kernel
---   address space and user address space. It transfers up to 'len' bytes of
---   data from the file descriptor 'fd_in' to the file descriptor 'fd_out',
+--   address space and user address space. It transfers up to @len@ bytes of
+--   data from the file descriptor @fd_in@ to the file descriptor @fd_out@,
 --   where one of the descriptors must refer to a pipe.
 --
 --   'c_splice' is /NOT/ a loop and needs to be called repeatedly.
@@ -64,7 +64,7 @@ sPLICE_F_MOVE = (#const "SPLICE_F_MOVE")
 
 
 -- | More data will be coming in a subsequent 'c_splice'. This is a helpful hint
---   when 'fd_out' refers to a socket.
+--   when @fd_out@ refers to a socket.
 sPLICE_F_MORE :: Word
 sPLICE_F_MORE = (#const "SPLICE_F_MORE")
 

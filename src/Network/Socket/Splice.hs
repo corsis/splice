@@ -18,7 +18,7 @@
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : stable
--- Portability : GHC-only, works on all operating systems
+-- Portability : works on all operating systems
 
 module Network.Socket.Splice (
 
