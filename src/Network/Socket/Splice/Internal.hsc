@@ -213,11 +213,11 @@ hSplice len s t = do
 
 -- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
 --   is expected and can be handled easily. Unlike 'finally' exceptions are
---   not rethrown once handled.
+--   /NOT/ rethrown once handled.
 tryWith
   :: (SomeException -> IO a) -- ^ exception handler.
-  -> IO a  -- ^ action to run which can throw /any/ exception.
-  -> IO a  -- ^ new action where all exceptions are handled by a single.
+  -> IO a -- ^ action to run which can throw /any/ exception.
+  -> IO a -- ^ new action where all exceptions are handled by the single handler.
 tryWith h a = try a >>= \r -> case r of Left x -> h x; Right y -> return y
 
 
