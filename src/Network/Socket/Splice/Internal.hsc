@@ -18,21 +18,30 @@
 module Network.Socket.Splice.Internal (
 
   -- * Cross-platform API for Socket to Socket Data Transfer Loops
+
   {- | 'splice' is the cross-platform API for continous, uni-directional
        data transfer between two network sockets.
 
        'splice' and its implementation primitives 'hSplice' and 'fdSplice' are
-       /infinite/ loops that are intended to be used with exception handlers and
-       'Control.Concurrent.forkIO'.
+       /infinite/ loops that are intended to be used with
+       'Control.Concurrent.forkIO' and exception handlers. 'splice' is a
+       terminal operation; it cannot be interleaved by other IO operations on
+       its sockets or handles.
 
        [Initiate bi-directional continuous data transfer between two sockets:]
     
        > void . forkIO . tryWith handler $ splice 1024 (sourceSocket, _) (targetSocket, _)
        > void . forkIO . tryWith handler $ splice 1024 (targetSocket, _) (sourceSocket, _)
 
-       where @handler@ is an IO action that would do the necessary clean up –
+       where @handler@ is an IO operation that would do the necessary clean up –
        such as ensuring the sockets are closed and any resources that may be
-       associated with the sockets are properly disposed of. 
+       associated with the sockets are properly disposed of.
+
+       [Notes]
+
+         * 'c_splice', the Linux-only system call, is not a terminal infinite
+           loop and can be safely interleaved by other IO operations on sockets
+           or socket handles.
   -}
 
     splice
@@ -127,6 +136,11 @@ throwRecv0 = error "Network.Socket.Splice.splice ended"
 --       'splice' can be forced on GNU\/Linux by defining the @portable@ flag at
 --       compile time.
 --
+--     * 'hSplice' implementation requires handles in 'NoBuffering' mode.
+--
+--     * 'splice' is a terminal loop on two sockets and once entered its sockets
+--        and handles cannot be interleaved by other IO operations.
+--
 splice
   :: ChunkSize               -- ^ chunk size.
   -> (Socket, Maybe Handle)  -- ^ source socket and possibly its opened handle.
@@ -192,12 +206,14 @@ fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
        2. uses it until the loop terminates by exception
 
        3. frees the buffer and returns
+
+   [Notes]
+
+     * the socket handles are required to be in 'NoBuffering' mode.
 -} 
 hSplice :: Int -> Handle -> Handle -> IO ()
 hSplice len s t = do
 
-  sb <- hGetBuffering s; hSetBuffering s NoBuffering
-  tb <- hGetBuffering t; hSetBuffering t NoBuffering
   a  <- mallocBytes len :: IO (Ptr Word8)
 
   finally
@@ -206,9 +222,7 @@ hSplice len s t = do
        if bytes > 0
          then     hPutBuf     t a bytes
          else     throwRecv0)
-    (do free a
-        try_ $ hSetBuffering s sb
-        try_ $ hSetBuffering s tb)
+    (free a)
 
 
 -- | Similar to 'Control.Exception.Base.try' but used when an obvious exception

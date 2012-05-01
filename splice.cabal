@@ -1,25 +1,23 @@
 name:          splice
-version:       0.5.2
+version:       0.6
 stability:     stable on all operating systems
-synopsis:      Socket to Socket Data Splicing (supports all operating systems)
+synopsis:      Cross-platform Socket to Socket Data Splicing
 description:   A library that implements most efficient socket to socket
                data transfer loops for proxy servers on each operating system.
                .
                On GNU/Linux, it uses and exposes the zero-copy @splice()@ system
                call: <http://kerneltrap.org/node/6505>.
                .
-               On all other operating systems, it currently falls back to a
-               portable Haskell implementation.
+               On other operating systems, it falls back to a portable Haskell
+               implementation.
                .
-               [Corsis Research]
+               [Funding]
                This work is funded by Corsis Research
                (<http://corsis.eu>) for the development of
-               .
-               [PortFusion \]-\[ayabusa (はやぶさ) (Hayabusa)]
-               – German-Japanese joint research project for building the
-               simplest and most concise high-performance distributed reverse /
-               forward proxy application possible on commodity hardware and
-               operating systems
+               PortFusion \]-\[ayabusa (はやぶさ) (Hayabusa) – German-Japanese
+               joint research project for building the simplest and most concise
+               high-performance distributed reverse / forward proxy application
+               possible on commodity hardware and operating systems
                (<https://sourceforge.net/p/portfusion/wiki/RoadMap/>).
 license:       BSD3
 license-file:  LICENSE
