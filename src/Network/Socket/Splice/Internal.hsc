@@ -39,9 +39,9 @@ module Network.Socket.Splice.Internal (
 
        [Notes]
 
-         * 'c_splice', the Linux-only system call, is not a terminal infinite
-           loop and can be safely interleaved by other IO operations on sockets
-           or socket handles.
+         * 'System.IO.Splice.Linux.c_splice', the Linux-only system call, is not
+           a terminal infinite loop and can be safely interleaved by other IO
+           operations on sockets or socket handles.
   -}
 
     splice
