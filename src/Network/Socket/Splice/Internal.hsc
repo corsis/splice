@@ -43,9 +43,9 @@ module Network.Socket.Splice.Internal (
            operations on sockets or socket handles.
   -}
 
-    zeroCopy
+    splice
   , ChunkSize
-  , splice
+  , zeroCopy
 
   -- * Combinators for Exception Handling
   , tryWith
@@ -173,7 +173,7 @@ splice len (_  , hIn) (_   , hOut) = do
        3. closes the pipe and returns
 -}
 fdSplice :: ChunkSize -> Fd -> Fd -> IO ()
-fdSplice fih len s@(Fd fdIn) t@(Fd fdOut) = do
+fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
 
   (r,w) <- createPipe
   let n = nullPtr  
