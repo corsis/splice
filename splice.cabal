@@ -1,5 +1,5 @@
 name:          splice
-version:       0.6.0.2
+version:       0.6.0.3
 stability:     stable on all operating systems
 synopsis:      Cross-platform Socket to Socket Data Splicing
 description:   A library that implements most efficient socket to socket
@@ -19,11 +19,17 @@ description:   A library that implements most efficient socket to socket
                project for building the simplest and most concise
                high-performance distributed reverse / forward proxy application
                possible on commodity hardware and operating systems.
+               .
+               [Version Scheme]
+               Major-@/R/@-ewrite . New-@/F/@-unctionality . @/I/@-mprovementAndBugFixes . @/P/@-ackagingOnly
+               .
+               * @PackagingOnly@ changes are made for quality assurance reasons.
+               
 copyright:     Copyright © 2012 Cetin Sert
 license:       BSD3
 license-file:  LICENSE
-author:        Cetin Sert <fusion@corsis.eu>
-maintainer:    Cetin Sert <fusion@corsis.eu>
+author:        Cetin Sert <fusion@corsis.eu>, Corsis Research
+maintainer:    Cetin Sert <fusion@corsis.eu>, Corsis Research
 homepage:      http://corsis.github.com/splice/
 bug-reports:   http://github.com/corsis/splice/issues
 category:      System, Network
@@ -50,16 +56,16 @@ library
     hs-source-dirs:      src
     exposed-modules:     Network.Socket.Splice
     other-modules:       Network.Socket.Splice.Internal
-    build-depends:       base    >= 4 && <= 6,
-                         network >= 2 && <= 4
+    build-depends:       base    >= 4 && <= 5,
+                         network -any
 
     if os(linux) && !flag(portable)
       exposed-modules:   System.IO.Splice.Linux
       build-depends:     unix    >= 2 && <= 4
       cpp-options:       -DLINUX_SPLICE
 
-
+      
     ghc-options:         -Wall -O2 -O3
 
     if flag(llvm)
-      ghc-options:       -fllvm -optlo-O3 -msse4.2
+      ghc-options:       -fllvm -optlo-O3

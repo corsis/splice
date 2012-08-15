@@ -11,8 +11,7 @@
 #ifdef LINUX_SPLICE
 #include <fcntl.h>
 #endif
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 
 
 module Network.Socket.Splice.Internal (
@@ -30,8 +29,8 @@ module Network.Socket.Splice.Internal (
 
        [Initiate bi-directional continuous data transfer between two sockets:]
     
-       > void . forkIO . tryWith handler $ splice 1024 (sourceSocket, _) (targetSocket, _)
-       > void . forkIO . tryWith handler $ splice 1024 (targetSocket, _) (sourceSocket, _)
+       > void . forkIO . tryWith handler $! splice void 1024 (sourceSocket, _) (targetSocket, _)
+       > void . forkIO . tryWith handler $! splice void 1024 (targetSocket, _) (sourceSocket, _)
 
        where @handler@ is an IO operation that would do the necessary clean up –
        such as ensuring the sockets are closed and any resources that may be
@@ -44,17 +43,16 @@ module Network.Socket.Splice.Internal (
            operations on sockets or socket handles.
   -}
 
-    splice
+    zeroCopy
   , ChunkSize
-  , zeroCopy
+  , splice
 
   -- * Combinators for Exception Handling
   , tryWith
   , try_
 
   -- * Implementation Primitives
-  {- | Infinite loops used in the cross-platform implementation of 'splice'.
-  -}
+  {- | Infinite loops used in the cross-platform implementation of 'splice'. -}
 
   , hSplice
 #ifdef LINUX_SPLICE
@@ -87,13 +85,12 @@ import Data.Maybe
 #endif
 
 
---------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 
--- | Indicates whether 'splice' uses zero-copy system calls or the portable user 
+-- | Indicates whether 'splice' uses zero-copy system calls or the portable user
 --   space Haskell implementation.
-zeroCopy :: Bool -- ^ @True@ if 'splice' uses zero-copy system calls;
-                 --   otherwise, false.
+zeroCopy :: Bool -- ^ @True@ if 'splice' uses zero-copy system calls; otherwise, false.
 zeroCopy =
 #ifdef LINUX_SPLICE
   True
@@ -112,8 +109,8 @@ type ChunkSize =
 #endif
 
 
-throwRecv0 :: a
-throwRecv0 = error "Network.Socket.Splice.splice ended"
+----------------------------------------------------------------------------------------------SPLICE
+
 
 -- | Pipes data from one socket to another in an /infinite loop/.
 --
@@ -142,7 +139,7 @@ throwRecv0 = error "Network.Socket.Splice.splice ended"
 --        and handles cannot be interleaved by other IO operations.
 --
 splice
-  :: ChunkSize               -- ^ chunk size.
+  :: ChunkSize               -- ^ maximal chunk size.
   -> (Socket, Maybe Handle)  -- ^ source socket and possibly its opened handle.
   -> (Socket, Maybe Handle)  -- ^ target socket and possibly its opened handle.
   -> IO ()                   -- ^ infinite loop.
@@ -152,8 +149,8 @@ splice len (sIn, _  ) (sOut, _   ) = do
 splice len (_  , hIn) (_   , hOut) = do
 #endif
 #ifdef LINUX_SPLICE
-  let s = Fd $ fdSocket sIn
-  let t = Fd $ fdSocket sOut
+  let s = Fd $! fdSocket sIn
+  let t = Fd $! fdSocket sOut
   fdSplice len s t
 #else
   let s = fromJust hIn
@@ -161,6 +158,8 @@ splice len (_  , hIn) (_   , hOut) = do
   hSplice (fromIntegral len) s t
 #endif
 
+
+--------------------------------------------------------------------------------------------FDSPLICE
 
 
 #ifdef LINUX_SPLICE
@@ -174,7 +173,7 @@ splice len (_  , hIn) (_   , hOut) = do
        3. closes the pipe and returns
 -}
 fdSplice :: ChunkSize -> Fd -> Fd -> IO ()
-fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
+fdSplice fih len s@(Fd fdIn) t@(Fd fdOut) = do
 
   (r,w) <- createPipe
   let n = nullPtr  
@@ -186,17 +185,19 @@ fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
   setNonBlockingMode False
 
   finally
-    (forever $ do 
-       bytes <- check $ L.c_splice s n w n    len    flags
+    (forever $! do 
+       bytes   <- check $! L.c_splice s n w n    len    flags
        if bytes > 0
-         then           L.c_splice r n t n (u bytes) flags
-         else           throwRecv0)
+         then              L.c_splice r n t n (u bytes) flags
+         else              throwRecv0)
     (do closeFd r
         closeFd w
-        try_ $ setNonBlockingMode True)
+        try_ $! setNonBlockingMode True)
 
 #endif
 
+
+---------------------------------------------------------------------------------------------HSPLICE
 
 
 {- | The portable Haskell loop.
@@ -214,15 +215,18 @@ fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
 hSplice :: Int -> Handle -> Handle -> IO ()
 hSplice len s t = do
 
-  a  <- mallocBytes len :: IO (Ptr Word8)
+  a <- mallocBytes len :: IO (Ptr Word8)
 
   finally
-    (forever $ do
-       bytes <-   hGetBufSome s a len
+    (forever $! do
+       bytes   <- hGetBufSome s a len
        if bytes > 0
          then     hPutBuf     t a bytes
          else     throwRecv0)
     (free a)
+
+
+------------------------------------------------------------------------------------------EXCEPTIONS
 
 
 -- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
@@ -230,14 +234,18 @@ hSplice len s t = do
 --   /NOT/ rethrown once handled.
 tryWith
   :: (SomeException -> IO a) -- ^ exception handler.
-  -> IO a -- ^ action to run which can throw /any/ exception.
-  -> IO a -- ^ new action where all exceptions are handled by the single handler.
+  -> IO a                    -- ^ action to run which can throw /any/ exception.
+  -> IO a                    -- ^ new action where all exceptions are handled by the single handler.
 tryWith h a = try a >>= \r -> case r of Left x -> h x; Right y -> return y
 
 
 -- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
 --   is expected which can be safely ignored.
 try_
-  :: IO () -- ^ action to run which can throw /any/ exception.
-  -> IO () -- ^ new action where exceptions are silenced.
+  :: IO ()                   -- ^ action to run which can throw /any/ exception.
+  -> IO ()                   -- ^ new action where exceptions are silenced.
 try_ a = (try a :: IO (Either SomeException ())) >> return ()
+
+
+throwRecv0 :: a
+throwRecv0 = error "Network.Socket.Splice.splice ended"

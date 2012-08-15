@@ -10,9 +10,10 @@
 -- Stability   : stable
 -- Portability : GNU\/Linux-only
 
+
 #include <fcntl.h>
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+
 
 module System.IO.Splice.Linux (
 
