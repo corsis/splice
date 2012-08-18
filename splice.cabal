@@ -5,20 +5,14 @@ synopsis:      Cross-platform Socket to Socket Data Splicing
 description:   A library that implements most efficient socket to socket
                data transfer loops for proxy servers on all operating systems.
                .
-               On GNU/Linux, it uses the zero-copy @splice()@ system
-               call (<http://kerneltrap.org/node/6505>) and exports it as
-               @c_splice@ in @System.IO.Splice.Linux@.
+               On GNU/Linux, it exports the zero-copy system call @c_splice()@
+               (<http://kerneltrap.org/node/6505>) in @System.IO.Splice.Linux@.
                .
-               On other operating systems, it uses a portable Haskell
+               On other operating systems, it only exports a portable Haskell
                implementation.
                .
-               [Legal]
-               This work is undertaken by Corsis Research for the development of
-               PortFusion \]-\[ayabusa (はやぶさ) (Hayabusa) 
-               (<https://fusion.corsis.eu>) – German-Japanese joint research
-               project for building the simplest and most concise
-               high-performance distributed reverse / forward proxy application
-               possible on commodity hardware and operating systems.
+               A unified sockets API for all operating systems is available in
+               @Network.Socket.Splice@.
                .
                [Version Scheme]
                Major-@/R/@-ewrite . New-@/F/@-unctionality . @/I/@-mprovementAndBugFixes . @/P/@-ackagingOnly
@@ -65,7 +59,7 @@ library
       cpp-options:       -DLINUX_SPLICE
 
       
-    ghc-options:         -Wall -O2 -O3
+    ghc-options:         -Wall -O2
 
     if flag(llvm)
       ghc-options:       -fllvm -optlo-O3
