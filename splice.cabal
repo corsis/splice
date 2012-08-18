@@ -34,7 +34,7 @@ homepage:      http://corsis.github.com/splice/
 bug-reports:   http://github.com/corsis/splice/issues
 category:      System, Network
 build-type:    Simple
-cabal-version: >=1.6
+cabal-version: >= 1.6
 
 
 source-repository head
