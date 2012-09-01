@@ -61,6 +61,8 @@ import qualified System.IO.Splice.Portable as I
 --     * As a corollary, you obviously should not use the source/target
 --       sockets again
 --
+--     * The @Socket@s will be closed when if an exception is thrown,
+--       terminating the loop.
 splice :: Integer   -- ^ Maximal chunk size
        -> Socket    -- ^ Source socket
        -> Socket    -- ^ Target socket
