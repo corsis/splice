@@ -59,7 +59,7 @@ spliceLoop len inp outp = do
   -- Should only be used to check c_splice calls
   let check res | res ==  0 = throwRecv0   -- Nothing left
                 | res /= -1 = return False -- OK transfer
-                | otherwise = do           -- *Possible* error
+                | otherwise = do           -- \*Possible\* error
                     err <- getErrno
                     if (err == eAGAIN) then return True
                      else throwErrno "spliceLoop"
