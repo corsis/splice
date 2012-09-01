@@ -35,7 +35,6 @@ import Foreign.C.Error
 
 import System.Posix.IO
 import System.Posix.Types
-import System.Posix.Internals
 
 #include <fcntl.h>
 
@@ -52,33 +51,36 @@ type ChunkSize = (#type size_t)
 -}
 spliceLoop :: ChunkSize -> Socket -> Socket -> IO ()
 spliceLoop len inp outp = do
-  let s@(Fd fdIn)  = Fd (fdSocket inp)
-      t@(Fd fdOut) = Fd (fdSocket outp)
+  let s = Fd (fdSocket inp)
+      t = Fd (fdSocket outp)
   (r,w) <- createPipe
-  let n = nullPtr
-  let check = throwErrnoIfMinus1 "Network.Socket.Splice.splice"
   let flags = sPLICE_F_MOVE .|. sPLICE_F_MORE
-  let setNonBlockingMode v = do setNonBlockingFD fdIn  v
-                                setNonBlockingFD fdOut v
-  setNonBlockingMode False
 
+  -- Should only be used to check c_splice calls
+  let check res | res ==  0 = throwRecv0   -- Nothing left
+                | res /= -1 = return False -- OK transfer
+                | otherwise = do           -- *Possible* error
+                    err <- getErrno
+                    if (err == eAGAIN) then return True
+                     else throwErrno "spliceLoop"
+
+  -- Simple loop to check for EAGAIN
+  let loop act = do
+        res <- act
+        again <- check res
+        if again then loop act else return res
+
+  -- Now we loop forever, splicing the sockets together
   finally
-    (forever $! do
-       bytes   <- check $! c_splice s n w n    len    flags
-       if bytes > 0
-         then              c_splice r n t n (fromIntegral bytes) flags
-         else              throwRecv0)
-    (do closeFd r
-        closeFd w
-        try_ $! setNonBlockingMode True)
+    (forever $ do
+       b <- loop $ c_splice s nullPtr w nullPtr len flags
+       void $ loop $ c_splice r nullPtr t nullPtr (fromIntegral b) flags
+    )
+    (closeFd r >> closeFd w >> closeFd s >> closeFd t)
 
--- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
---   is expected which can be safely ignored.
-try_
-  :: IO ()                   -- ^ action to run which can throw /any/ exception.
-  -> IO ()                   -- ^ new action where exceptions are silenced.
-try_ a = void (try a :: IO (Either SomeException ()))
-
+--
+-- FFI
+--
 
 -- | Moves data between two file descriptors without copying between kernel
 --   address space and user address space. It transfers up to @len@ bytes of
