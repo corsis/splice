@@ -4,8 +4,8 @@
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
--- Stability   : stable
--- Portability : GNU\/Linux-only
+-- Stability   : Stable
+-- Portability : GNU/Linux only
 --
 -- Exposes the GNU\/Linux @splice(2)@ system call: <http://kerneltrap.org/node/6505>
 --

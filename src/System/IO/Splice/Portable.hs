@@ -3,7 +3,7 @@
 -- Copyright   : (c) Cetin Cert 2012
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
--- Stability   : stable
+-- Stability   : Stable
 -- Portability : Portable
 --
 -- Exposes a portable alternative to the `splice(2)` system call
