@@ -1,19 +1,13 @@
--- | Implementation.
---
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- Module      : Network.Socket.Splice.Internal
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : stable
 -- Portability : works on all operating systems
-
-
-#ifdef LINUX_SPLICE
-#include <fcntl.h>
-#endif
-{-# LANGUAGE CPP, ForeignFunctionInterface #-}
-
-
+--
+-- Implementation.
+--
 module Network.Socket.Splice.Internal (
 
   -- * Cross-platform API for Socket to Socket Data Transfer Loops
@@ -28,7 +22,7 @@ module Network.Socket.Splice.Internal (
        its sockets or handles.
 
        [Initiate bi-directional continuous data transfer between two sockets:]
-    
+
        > void . forkIO . tryWith handler $! splice void 1024 (sourceSocket, _) (targetSocket, _)
        > void . forkIO . tryWith handler $! splice void 1024 (targetSocket, _) (sourceSocket, _)
 
@@ -61,6 +55,9 @@ module Network.Socket.Splice.Internal (
 
   ) where
 
+#ifdef LINUX_SPLICE
+#include <fcntl.h>
+#endif
 
 import Data.Word
 import Foreign.Ptr
@@ -176,7 +173,7 @@ fdSplice :: ChunkSize -> Fd -> Fd -> IO ()
 fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
 
   (r,w) <- createPipe
-  let n = nullPtr  
+  let n = nullPtr
   let u = unsafeCoerce :: (#type ssize_t) -> (#type size_t)
   let check = throwErrnoIfMinus1 "Network.Socket.Splice.splice"
   let flags = L.sPLICE_F_MOVE .|. L.sPLICE_F_MORE
@@ -185,7 +182,7 @@ fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
   setNonBlockingMode False
 
   finally
-    (forever $! do 
+    (forever $! do
        bytes   <- check $! L.c_splice s n w n    len    flags
        if bytes > 0
          then              L.c_splice r n t n (u bytes) flags
@@ -211,7 +208,7 @@ fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
    [Notes]
 
      * the socket handles are required to be in 'NoBuffering' mode.
--} 
+-}
 hSplice :: Int -> Handle -> Handle -> IO ()
 hSplice len s t = do
 
