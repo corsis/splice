@@ -9,7 +9,7 @@
 -- 'splice' is the cross-platform API for continous, uni-directional
 -- data transfer between two network sockets.
 --
--- 'splice' and its implementation primitives 'hSplice' and 'fdSplice' are
+-- 'splice' and its implementation primitives are
 -- /infinite/ loops that are intended to be used with
 -- 'Control.Concurrent.forkIO' and exception handlers. 'splice' is a
 -- terminal operation; it cannot be interleaved by other IO operations
@@ -17,18 +17,13 @@
 --
 -- [Initiate bi-directional continuous data transfer between two sockets:]
 --
--- > void . forkIO . tryWith handler $! splice void 1024 (sourceSocket, _) (targetSocket, _)
--- > void . forkIO . tryWith handler $! splice void 1024 (targetSocket, _) (sourceSocket, _)
+-- > void . forkIO . tryWith handler $! splice 1024 sourceSocket targetSocket
+-- > void . forkIO . tryWith handler $! splice 1024 targetSocket sourceSocket
 --
 -- where @handler@ is an IO operation that would do the necessary clean up –
 -- such as ensuring the sockets are closed and any resources that may be
 -- associated with the sockets are properly disposed of.
 --
--- [Notes]
---
---   * 'System.IO.Splice.Linux.c_splice', the Linux-only system call, is not
---     a terminal infinite loop and can be safely interleaved by other IO
---     operations on sockets or socket handles.
 module Network.Socket.Splice (
   -- * Cross-platform interface
     splice
@@ -53,36 +48,23 @@ import qualified System.IO.Splice.Portable as I
 ----------------------------------------------------------------------------------------------SPLICE
 
 
--- | Pipes data from one socket to another in an /infinite loop/.
---
---   'splice' currently has two implementations:
---
---   [on GNU\/Linux using 'fdSplice' ≅]
---
---   > splice len (sIn, _       ) (sOut, _        ) = ... fdSplice ...
---
---   [on all other operating systems using 'hSplice' ≅]
---
---   > splice len (_  , Just hIn) (_   , Just hOut) = ... hSplice  ...
+-- | Pipes data from one socket to another in an /infinite loop/. If
+-- available, it will use the @splice(2)@ system call to allow zero-copy
+-- transfer between sockets. Otherwise it will use a portable Haskell
+-- implementation.
 --
 --   [Notes]
 --
---     * 'fdSplice' and 'fdSplice' implementation of 'splice' are only available
---        on GNU\/Linux.
---
---     * 'hSplice' is always available and the 'hSplice' implementation of
---       'splice' can be forced on GNU\/Linux by defining the @portable@ flag at
---       compile time.
---
---     * 'hSplice' implementation requires handles in 'NoBuffering' mode.
---
 --     * 'splice' is a terminal loop on two sockets and once entered its sockets
---        and handles cannot be interleaved by other IO operations.
+--       and handles cannot be interleaved by other IO operations.
+--
+--     * As a corollary, you obviously should not use the source/target
+--       sockets again
 --
 splice :: Integer   -- ^ Maximal chunk size
        -> Socket    -- ^ Source socket
        -> Socket    -- ^ Target socket
-       -> IO ()
+       -> IO ()     -- ^ Infinite loop
 splice sz = I.spliceLoop (fromIntegral sz)
 
 -- | Indicates whether 'splice' uses zero-copy system calls or the portable user
