@@ -2,7 +2,7 @@
 
      /This module is only available (compiled & exposed) on GNU/\//Linux./
 -}
---  
+--
 -- Module      : System.IO.Splice.Linux
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
