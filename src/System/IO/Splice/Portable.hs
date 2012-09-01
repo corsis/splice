@@ -52,7 +52,9 @@ spliceLoop len inp outp = do
        if bytes > 0
          then     hPutBuf     t a bytes
          else     throwRecv0)
-    (free a)
+    (do hClose s
+        hClose t
+        free a)
 
 throwRecv0 :: a
 throwRecv0 = error "System.IO.Splice.Portable.spliceLoop ended"
