@@ -31,8 +31,7 @@
 --     operations on sockets or socket handles.
 module Network.Socket.Splice (
   -- * Cross-platform interface
-    ChunkSize
-  , splice
+    splice
   , usingSplice
 
   -- * Combinators for Exception Handling
@@ -42,13 +41,12 @@ module Network.Socket.Splice (
 
 import Prelude hiding (sin)
 import Network.Socket
+import Control.Monad (void)
 import Control.Exception
 
 #ifdef LINUX_SPLICE
-import System.IO.Splice.Linux (ChunkSize)
 import qualified System.IO.Splice.Linux as I
 #else
-import System.IO.Splice.Portable (ChunkSize)
 import qualified System.IO.Splice.Portable as I
 #endif
 
@@ -81,11 +79,11 @@ import qualified System.IO.Splice.Portable as I
 --     * 'splice' is a terminal loop on two sockets and once entered its sockets
 --        and handles cannot be interleaved by other IO operations.
 --
-splice :: ChunkSize -- ^ Maximal chunk size
+splice :: Integer   -- ^ Maximal chunk size
        -> Socket    -- ^ Source socket
        -> Socket    -- ^ Target socket
        -> IO ()
-splice sz inp outp = I.spliceLoop sz inp outp
+splice sz = I.spliceLoop (fromIntegral sz)
 
 -- | Indicates whether 'splice' uses zero-copy system calls or the portable user
 --   space Haskell implementation.
@@ -114,4 +112,4 @@ tryWith h a = try a >>= \r -> case r of Left x -> h x; Right y -> return y
 try_
   :: IO ()                   -- ^ action to run which can throw /any/ exception.
   -> IO ()                   -- ^ new action where exceptions are silenced.
-try_ a = (try a :: IO (Either SomeException ())) >> return ()
+try_ a = void (try a :: IO (Either SomeException ()))

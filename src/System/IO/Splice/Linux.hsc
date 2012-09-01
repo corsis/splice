@@ -77,7 +77,7 @@ spliceLoop len inp outp = do
 try_
   :: IO ()                   -- ^ action to run which can throw /any/ exception.
   -> IO ()                   -- ^ new action where exceptions are silenced.
-try_ a = (try a :: IO (Either SomeException ())) >> return ()
+try_ a = void (try a :: IO (Either SomeException ()))
 
 
 -- | Moves data between two file descriptors without copying between kernel
