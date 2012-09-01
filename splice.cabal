@@ -30,6 +30,8 @@ category:      System, Network
 build-type:    Simple
 cabal-version: >= 1.6
 
+extra-source-files:
+  README.md, AUTHORS.txt
 
 source-repository head
     type:      git
