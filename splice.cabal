@@ -18,7 +18,7 @@ description:   A library that implements most efficient socket to socket
                Major-@/R/@-ewrite . New-@/F/@-unctionality . @/I/@-mprovementAndBugFixes . @/P/@-ackagingOnly
                .
                * @PackagingOnly@ changes are made for quality assurance reasons.
-               
+
 copyright:     Copyright © 2012 Cetin Sert
 license:       BSD3
 license-file:  LICENSE
