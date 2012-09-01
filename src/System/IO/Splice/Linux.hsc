@@ -1,30 +1,20 @@
-{- | Exposes the GNU\/Linux system call @splice()@: <http://kerneltrap.org/node/6505>.
-
-     /This module is only available (compiled & exposed) on GNU/\//Linux./
--}
---
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- Module      : System.IO.Splice.Linux
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : stable
 -- Portability : GNU\/Linux-only
-
-
-#include <fcntl.h>
-{-# LANGUAGE CPP, ForeignFunctionInterface #-}
-
-
+--
+-- Exposes the GNU\/Linux @splice(2)@ system call: <http://kerneltrap.org/node/6505>
+--
 module System.IO.Splice.Linux (
-
     c_splice
   , ChunkSize
   , sPLICE_F_MOVE
   , sPLICE_F_MORE
   , sPLICE_F_NONBLOCK
-
   ) where
-
 
 import Data.Int
 import Data.Word
@@ -32,6 +22,7 @@ import Foreign.Ptr
 import Foreign.C.Types
 import System.Posix.Types
 
+#include <fcntl.h>
 
 -- | The numeric type used by 'c_splice' for chunk size recommendations when
 --   moving data.
