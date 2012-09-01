@@ -70,13 +70,18 @@ spliceLoop len inp outp = do
         again <- check res
         if again then loop act else return res
 
+  let closeFd' = try_ . closeFd
+
   -- Now we loop forever, splicing the sockets together
   finally
     (forever $ do
        b <- loop $ c_splice s nullPtr w nullPtr len flags
        void $ loop $ c_splice r nullPtr t nullPtr (fromIntegral b) flags
     )
-    (closeFd r >> closeFd w >> closeFd s >> closeFd t)
+    (closeFd' r >> closeFd' w >> closeFd' s >> closeFd' t)
+
+try_ :: IO () -> IO ()
+try_ a = void (try a :: IO (Either SomeException ()))
 
 --
 -- FFI
