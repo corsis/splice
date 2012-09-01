@@ -38,7 +38,7 @@ source-repository head
 
 flag portable
     description: force portable 'splice' implementation on GNU\/Linux
-    default    : True
+    default    : False
 
 
 flag llvm
