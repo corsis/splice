@@ -1,6 +1,6 @@
 -- |
 -- Module      : System.IO.Splice.Portable
--- Copyright   : (c) Cetin Cert 2012
+-- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
 -- Maintainer  : fusion@corsis.eu
 -- Stability   : Stable
