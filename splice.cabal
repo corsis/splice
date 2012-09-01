@@ -48,17 +48,17 @@ flag llvm
 
 library
     hs-source-dirs:      src
-    exposed-modules:     Network.Socket.Splice
-    other-modules:       Network.Socket.Splice.Internal
+    exposed-modules:
+      Network.Socket.Splice
+      System.IO.Splice.Portable
     build-depends:       base    >= 4 && <= 5,
-                         network -any
+                         network
 
     if os(linux) && !flag(portable)
       exposed-modules:   System.IO.Splice.Linux
       build-depends:     unix    >= 2 && <= 4
       cpp-options:       -DLINUX_SPLICE
 
-      
     ghc-options:         -Wall -O2
 
     if flag(llvm)

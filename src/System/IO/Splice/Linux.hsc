@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP, ForeignFunctionInterface #-}
+-- |
 -- Module      : System.IO.Splice.Linux
 -- Copyright   : (c) Cetin Sert 2012
 -- License     : BSD3
@@ -9,8 +10,12 @@
 -- Exposes the GNU\/Linux @splice(2)@ system call: <http://kerneltrap.org/node/6505>
 --
 module System.IO.Splice.Linux (
-    c_splice
-  , ChunkSize
+    -- * Types
+    ChunkSize
+    -- * System call loop
+  , spliceLoop
+    -- * FFI bindings
+  , c_splice
   , sPLICE_F_MOVE
   , sPLICE_F_MORE
   , sPLICE_F_NONBLOCK
@@ -18,15 +23,62 @@ module System.IO.Splice.Linux (
 
 import Data.Int
 import Data.Word
+import Data.Bits
+
+import Network.Socket
+import Control.Monad
+import Control.Exception
+
 import Foreign.Ptr
 import Foreign.C.Types
+import Foreign.C.Error
+
+import System.Posix.IO
 import System.Posix.Types
+import System.Posix.Internals
 
 #include <fcntl.h>
 
--- | The numeric type used by 'c_splice' for chunk size recommendations when
---   moving data.
+-- | Chunk size for moving data between sockets.
 type ChunkSize = (#type size_t)
+
+{- | GNU\/Linux @splice()@ system call loop.
+
+       1. creates a pipe in kernel address space
+
+       2. uses it until the loop terminates by exception
+
+       3. closes the pipe and returns
+-}
+spliceLoop :: ChunkSize -> Socket -> Socket -> IO ()
+spliceLoop len inp outp = do
+  let s@(Fd fdIn)  = Fd (fdSocket inp)
+      t@(Fd fdOut) = Fd (fdSocket outp)
+  (r,w) <- createPipe
+  let n = nullPtr
+  let check = throwErrnoIfMinus1 "Network.Socket.Splice.splice"
+  let flags = sPLICE_F_MOVE .|. sPLICE_F_MORE
+  let setNonBlockingMode v = do setNonBlockingFD fdIn  v
+                                setNonBlockingFD fdOut v
+  setNonBlockingMode False
+
+  finally
+    (forever $! do
+       bytes   <- check $! c_splice s n w n    len    flags
+       if bytes > 0
+         then              c_splice r n t n (fromIntegral bytes) flags
+         else              throwRecv0)
+    (do closeFd r
+        closeFd w
+        try_ $! setNonBlockingMode True)
+
+-- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
+--   is expected which can be safely ignored.
+try_
+  :: IO ()                   -- ^ action to run which can throw /any/ exception.
+  -> IO ()                   -- ^ new action where exceptions are silenced.
+try_ a = (try a :: IO (Either SomeException ())) >> return ()
+
 
 -- | Moves data between two file descriptors without copying between kernel
 --   address space and user address space. It transfers up to @len@ bytes of
@@ -67,3 +119,6 @@ sPLICE_F_MORE = (#const "SPLICE_F_MORE")
 --   @O_NONBLOCK@ flag set).
 sPLICE_F_NONBLOCK :: Word
 sPLICE_F_NONBLOCK = (#const "SPLICE_F_NONBLOCK")
+
+throwRecv0 :: a
+throwRecv0 = error "System.IO.Splice.Linux.spliceLoop ended"
