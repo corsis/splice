@@ -95,7 +95,7 @@ try_ a = void (try a :: IO (Either SomeException ()))
 --   'c_splice' is /NOT/ a loop and needs to be called repeatedly.
 --
 --   For an example, see 'Network.Socket.Splice.Internal.splice'.
-foreign import ccall "splice"
+foreign import ccall unsafe "splice"
   c_splice
   :: Fd                  -- ^ @fd_in@.
   -> Ptr (#type loff_t)  -- ^ @off_in@.
