@@ -1,6 +1,6 @@
 name:          splice
 version:       0.6.1
-stability:     stable on all operating systems
+stability:     Stable
 synopsis:      Cross-platform Socket to Socket Data Splicing
 description:   A library that implements most efficient socket to socket
                data transfer loops for proxy servers on all operating systems.
