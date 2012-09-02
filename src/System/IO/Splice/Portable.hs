@@ -16,45 +16,31 @@ module System.IO.Splice.Portable
        , spliceLoop
        ) where
 
-import Data.Word
-import System.IO
-import Network.Socket
+import Data.ByteString as S
+import Network.Socket hiding (recv, send)
+import Network.Socket.ByteString (send, recv)
 
 import Control.Monad
 import Control.Exception
 
-import Foreign.Ptr
-import Foreign.Marshal.Alloc
 
 -- | Chunk size for moving data between sockets.
 type ChunkSize = Int
 
-{- | The portable Haskell loop.
-
-       1. allocates a /single/ memory buffer in user address space
-
-       2. uses it until the loop terminates by exception
-
-       3. frees the buffer and returns
-
-   [Notes]
-
-     * the socket handles are required to be in 'NoBuffering' mode.
--}
+-- | The portable Haskell loop.
 spliceLoop :: Int -> Socket -> Socket -> IO ()
 spliceLoop len inp outp = do
-  s <- socketToHandle inp ReadWriteMode
-  t <- socketToHandle outp ReadWriteMode
-  a <- mallocBytes len :: IO (Ptr Word8)
+  let sClose' = try_ . sClose
   finally
     (forever $! do
-       bytes   <- hGetBufSome s a len
-       if bytes > 0
-         then     hPutBuf     t a bytes
-         else     throwRecv0)
-    (do hClose s
-        hClose t
-        free a)
+       bs <- recv inp len
+       if S.length bs > 0
+         then send outp bs
+         else throwRecv0)
+    (sClose' inp >> sClose' outp)
+
+try_ :: IO () -> IO ()
+try_ a = void (try a :: IO (Either SomeException ()))
 
 throwRecv0 :: a
 throwRecv0 = error "System.IO.Splice.Portable.spliceLoop ended"
