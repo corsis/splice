@@ -23,6 +23,8 @@ import Network.Socket.ByteString (send, recv)
 import Control.Monad
 import Control.Exception
 
+import System.IO.Splice.Util
+
 
 -- | Chunk size for moving data between sockets.
 type ChunkSize = Int
@@ -38,9 +40,3 @@ spliceLoop len inp outp = do
          then send outp bs
          else throwRecv0)
     (sClose' inp >> sClose' outp)
-
-try_ :: IO () -> IO ()
-try_ a = void (try a :: IO (Either SomeException ()))
-
-throwRecv0 :: a
-throwRecv0 = error "System.IO.Splice.Portable.spliceLoop ended"

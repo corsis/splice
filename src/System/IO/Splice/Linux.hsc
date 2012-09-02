@@ -36,6 +36,8 @@ import Foreign.C.Error
 import System.Posix.IO
 import System.Posix.Types
 
+import System.IO.Splice.Util
+
 #include <fcntl.h>
 
 -- | Chunk size for moving data between sockets.
@@ -81,9 +83,6 @@ spliceLoop len inp outp = do
     )
     (closeFd' r >> closeFd' w >> closeFd' s >> closeFd' t)
 
-try_ :: IO () -> IO ()
-try_ a = void (try a :: IO (Either SomeException ()))
-
 --
 -- FFI
 --
@@ -127,6 +126,3 @@ sPLICE_F_MORE = (#const "SPLICE_F_MORE")
 --   @O_NONBLOCK@ flag set).
 sPLICE_F_NONBLOCK :: Word
 sPLICE_F_NONBLOCK = (#const "SPLICE_F_NONBLOCK")
-
-throwRecv0 :: a
-throwRecv0 = error "System.IO.Splice.Linux.spliceLoop ended"

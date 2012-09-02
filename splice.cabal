@@ -53,6 +53,9 @@ library
     exposed-modules:
       Network.Socket.Splice
       System.IO.Splice.Portable
+    other-modules:
+      System.IO.Splice.Util
+
     build-depends:       base    >= 4 && <= 5,
                          bytestring,
                          network

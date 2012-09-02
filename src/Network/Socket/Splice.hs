@@ -27,7 +27,7 @@
 module Network.Socket.Splice (
   -- * Cross-platform interface
     splice
-  , usingSplice
+  , usingSplice2
 
   -- * Combinators for Exception Handling
   , tryWith
@@ -36,8 +36,8 @@ module Network.Socket.Splice (
 
 import Prelude hiding (sin)
 import Network.Socket
-import Control.Monad (void)
-import Control.Exception
+
+import System.IO.Splice.Util
 
 #ifdef LINUX_SPLICE
 import qualified System.IO.Splice.Linux as I
@@ -69,31 +69,12 @@ splice :: Integer   -- ^ Maximal chunk size
        -> IO ()     -- ^ Infinite loop
 splice sz = I.spliceLoop (fromIntegral sz)
 
--- | Indicates whether 'splice' uses zero-copy system calls or the portable user
---   space Haskell implementation.
-usingSplice :: Bool -- ^ @True@ if 'splice' uses zero-copy system calls; otherwise, false.
-usingSplice =
+-- | Indicates whether 'splice' uses zero-copy system @splice(2)@
+-- system call, or the portable user space Haskell implementation.
+usingSplice2 :: Bool -- ^ @True@ if 'splice' uses zero-copy system calls; otherwise, false.
+usingSplice2 =
 #ifdef LINUX_SPLICE
   True
 #else
   False
 #endif
-
-------------------------------------------------------------------------------------------EXCEPTIONS
-
--- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
---   is expected and can be handled easily. Unlike 'finally' exceptions are
---   /NOT/ rethrown once handled.
-tryWith
-  :: (SomeException -> IO a) -- ^ exception handler.
-  -> IO a                    -- ^ action to run which can throw /any/ exception.
-  -> IO a                    -- ^ new action where all exceptions are handled by the single handler.
-tryWith h a = try a >>= \r -> case r of Left x -> h x; Right y -> return y
-
-
--- | Similar to 'Control.Exception.Base.try' but used when an obvious exception
---   is expected which can be safely ignored.
-try_
-  :: IO ()                   -- ^ action to run which can throw /any/ exception.
-  -> IO ()                   -- ^ new action where exceptions are silenced.
-try_ a = void (try a :: IO (Either SomeException ()))
