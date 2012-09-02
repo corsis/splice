@@ -54,14 +54,15 @@ spliceLoop len inp outp = do
   let s = Fd (fdSocket inp)
       t = Fd (fdSocket outp)
   (r,w) <- createPipe
-  let flags = sPLICE_F_MOVE .|. sPLICE_F_MORE
+  let flags = sPLICE_F_MOVE .|. sPLICE_F_MORE .|. sPLICE_F_NONBLOCK
 
   -- Should only be used to check c_splice calls
   let check res | res ==  0 = throwRecv0   -- Nothing left
                 | res /= -1 = return False -- OK transfer
                 | otherwise = do           -- \*Possible\* error
                     err <- getErrno
-                    if (err == eAGAIN) then return True
+                    if (err == eAGAIN) || (err == eINTR)
+                     then return True
                      else throwErrno "spliceLoop"
 
   -- Simple loop to check for EAGAIN
