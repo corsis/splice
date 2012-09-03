@@ -51,7 +51,7 @@ library
     exposed-modules:     Network.Socket.Splice
     other-modules:       Network.Socket.Splice.Internal
     build-depends:       base    >= 4 && <= 5,
-                         network -any
+                         network
 
     if os(linux) && !flag(portable)
       exposed-modules:   System.IO.Splice.Linux
