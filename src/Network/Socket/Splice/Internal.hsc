@@ -164,7 +164,7 @@ splice len (_  , hIn) (_   , hOut) = do
 
 #ifdef LINUX_SPLICE
 
-{- | GNU\/Linux @splice()@ system call loop.
+{- | GNU\/Linux @splice@ system call loop.
 
        1. creates a pipe in kernel address space
 

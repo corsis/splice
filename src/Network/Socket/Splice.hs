@@ -2,8 +2,8 @@
   This library implements most efficient socket to socket data transfer loops
   for proxy servers on each operating system.
                
-  On GNU\/Linux, it uses and exposes the zero-copy @splice()@ system call:
-  <http://kerneltrap.org/node/6505>.
+  On GNU\/Linux, it uses and exposes the zero-copy @splice@ system call:
+  <http://en.wikipedia.org/wiki/Splice_(system_call)>.
 
   On all other operating systems, it currently falls back to a portable Haskell
   implementation – which allocates a single memory buffer in user address space,

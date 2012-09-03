@@ -1,4 +1,4 @@
-{- | Exposes the GNU\/Linux system call @splice()@: <http://kerneltrap.org/node/6505>.
+{- | Exposes the GNU\/Linux system call @splice@: <http://en.wikipedia.org/wiki/Splice_(system_call)>.
 
      /This module is only available (compiled & exposed) on GNU/\//Linux./
 -}

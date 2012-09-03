@@ -1,12 +1,13 @@
 name:          splice
-version:       0.6.1
+version:       0.6.2
 stability:     stable on all operating systems
 synopsis:      Cross-platform Socket to Socket Data Splicing
 description:   A library that implements most efficient socket to socket
                data transfer loops for proxy servers on all operating systems.
                .
                On GNU/Linux, it exports the zero-copy system call @c_splice()@
-               (<http://kerneltrap.org/node/6505>) in @System.IO.Splice.Linux@.
+               (<http://en.wikipedia.org/wiki/Splice_(system_call)>) in
+               @System.IO.Splice.Linux@.
                .
                On other operating systems, it only exports a portable Haskell
                implementation.
@@ -38,7 +39,7 @@ source-repository head
 
 flag portable
     description: force portable 'splice' implementation on GNU\/Linux
-    default    : True
+    default    : False
 
 
 flag llvm
