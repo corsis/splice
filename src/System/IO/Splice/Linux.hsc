@@ -45,7 +45,7 @@ type ChunkSize = (#type size_t)
 --   'c_splice' is /NOT/ a loop and needs to be called repeatedly.
 --
 --   For an example, see 'Network.Socket.Splice.Internal.splice'.
-foreign import ccall unsafe "splice"
+foreign import ccall "splice"
   c_splice
   :: Fd                  -- ^ @fd_in@.
   -> Ptr (#type loff_t)  -- ^ @off_in@.
