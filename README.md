@@ -17,8 +17,6 @@ Please consider these points to ensure a smooth and friendly merge:
    - must be tested on at least one of these operating systems: Windows, GNU/Linux, OS X and FreeBSD
    - must link to results of such tests and instructions to reproduce them
    - will be rejected if they lack reproducible performance and/or reliability improvements
- - API changes
-   - will be rejected
 
 ----
 
