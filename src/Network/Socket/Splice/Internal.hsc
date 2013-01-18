@@ -176,16 +176,16 @@ fdSplice :: ChunkSize -> Fd -> Fd -> IO ()
 fdSplice len s@(Fd fdIn) t@(Fd fdOut) = do
 
   (r,w) <- createPipe
-  let n =  nullPtr  
+  let n =  nullPtr
   let u =  unsafeCoerce :: (#type ssize_t) -> (#type size_t)
   let check = throwErrnoIfMinus1 "Network.Socket.Splice.splice"
-  let flags = L.sPLICE_F_MOVE .|. L.sPLICE_F_MORE
+  let flags = L.sPLICE_F_MOVE
   let setNonBlockingMode v = do setNonBlockingFD fdIn  v
                                 setNonBlockingFD fdOut v
   setNonBlockingMode False
 
   finally
-    (forever $! do 
+    (forever $! do
        bytes   <- check $! L.c_splice s n w n    len    flags
        if bytes > 0
          then              L.c_splice r n t n (u bytes) flags
