@@ -23,8 +23,8 @@ description:   A library that implements most efficient socket to socket
 copyright:     Copyright © 2012 Cetin Sert
 license:       BSD3
 license-file:  LICENSE
-author:        Cetin Sert <fusion@corsis.eu>, Corsis Research
-maintainer:    Cetin Sert <fusion@corsis.eu>, Corsis Research
+author:        Cetin Sert <fusion@corsis.tech>, Corsis Research
+maintainer:    Cetin Sert <fusion@corsis.tech>, Corsis Research
 homepage:      http://corsis.github.com/splice/
 bug-reports:   http://github.com/corsis/splice/issues
 category:      System, Network
