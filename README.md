@@ -24,6 +24,6 @@ Please consider these points to ensure a smooth and friendly merge:
 
 [![corsis]](https://github.com/corsis/)
 
-[fusion@corsis.eu](mailto:fusion@corsis.eu)
+[fusion@corsis.tech](mailto:fusion@corsis.tech)
 
 [corsis]: http://portfusion.sourceforge.net/i/l100.png "Corsis Research"
